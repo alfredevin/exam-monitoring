@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Exam Timer - Squid Game Style</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      transition: background 1s ease;
+      background: radial-gradient(circle, #6eff7f, #1d7427);
+      overflow: hidden;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 2.2rem;
+      color: #fff;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.7),
+        0 0 30px rgba(0, 255, 255, 0.4);
+      letter-spacing: 2px;
+    }
+
+    /* Timer */
+    #timer {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 95px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
+      color: #fff;
+      padding: 15px 40px;
+      border-radius: 25px;
+      border: 10px solid #fff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+      transition: border-color 0.8s ease, color 0.8s ease, box-shadow 0.8s ease;
+    }
+
+    /* Eyes container */
+    .eyes {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin-top: 50px;
+    }
+
+    .eye {
+      width: 130px;
+      height: 130px;
+      background: #fff;
+      border-radius: 50%;
+      border: 5px solid #000;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow 0.5s ease, transform 0.3s ease;
+    }
+
+    .pupil {
+      width: 50px;
+      height: 50px;
+      background: black;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform 0.2s ease;
+    }
+
+    /* Blinking animation */
+    .eye::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      border-radius: 50%;
+      transform-origin: top;
+      animation: blink 6s infinite;
+    }
+
+    @keyframes blink {
+      0%, 95%, 100% {
+        transform: scaleY(0);
+      }
+      97% {
+        transform: scaleY(1);
+      }
+    }
+
+    /* Button */
+    button {
+      padding: 14px 28px;
+      font-size: 1.3rem;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #00c6ff, #007bff);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.25s ease, background 0.4s ease, box-shadow 0.4s ease;
+      margin-top: 20px;
+      box-shadow: 0 0 20px rgba(0, 198, 255, 0.6);
+    }
+
+    button:hover {
+      transform: scale(1.08);
+      background: linear-gradient(90deg, #0099cc, #0056b3);
+      box-shadow: 0 0 25px rgba(0, 198, 255, 0.9);
+    }
+
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Background color stages */
+    body.green {
+      background: radial-gradient(circle, #6eff7f, #1d7427);
+    }
+
+    body.yellow {
+      background: radial-gradient(circle, #ffe96e, #b8860b);
+      animation: pulse-yellow 3s infinite alternate;
+    }
+
+    body.red {
+      background: radial-gradient(circle, #ff6e6e, #8b0000);
+      animation: pulse-red 2s infinite alternate;
+    }
+
+    /* Timer color stages */
+    #timer.green {
+      border-color: #28a745;
+      color: #28a745;
+      box-shadow: 0 0 25px rgba(40, 167, 69, 0.8);
+    }
+
+    #timer.yellow {
+      border-color: #ffc107;
+      color: #ffc107;
+      box-shadow: 0 0 25px rgba(255, 193, 7, 0.9);
+    }
+
+    #timer.red {
+      border-color: #dc3545;
+      color: #ff4444;
+      box-shadow: 0 0 30px rgba(220, 53, 69, 1);
+    }
+
+    /* Eye glow when danger */
+    .eye.danger {
+      box-shadow: 0 0 40px 10px red;
+      transform: scale(1.05);
+    }
+
+    /* Pulse animations */
+    @keyframes pulse-red {
+      from {
+        background: radial-gradient(circle, #ff6e6e, #8b0000);
+      }
+      to {
+        background: radial-gradient(circle, #ff0000, #660000);
+      }
+    }
+
+    @keyframes pulse-yellow {
+      from {
+        background: radial-gradient(circle, #ffe96e, #b8860b);
+      }
+      to {
+        background: radial-gradient(circle, #ffd500, #8a6d1d);
+      }
+    }
+  </style>
+</head>
+
+<body class="green">
+  <h1> Exam Timer</h1>
+  <div class="timer" id="timer">01:30:00</div>
+  <button id="startBtn">Start Exam</button>
+
+  <div class="eyes">
+    <div class="eye"><div class="pupil"></div></div>
+    <div class="eye"><div class="pupil"></div></div>
+  </div>
+
+  <audio id="alarmSound"
+    src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
+
+  <script>
+    let totalSeconds = 90 * 60; // 1h 30m
+    let timerInterval;
+    const timerDisplay = document.getElementById("timer");
+    const startBtn = document.getElementById("startBtn");
+    const alarmSound = document.getElementById("alarmSound");
+    const eyes = document.querySelectorAll(".eye");
+
+    function speak(text) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';
+      window.speechSynthesis.speak(speech);
+    }
+
+    function formatTime(seconds) {
+      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function updateTheme() {
+      document.body.classList.remove("green", "yellow", "red");
+      timerDisplay.classList.remove("green", "yellow", "red");
+      eyes.forEach(e => e.classList.remove("danger"));
+
+      if (totalSeconds > 30 * 60) {
+        document.body.classList.add("green");
+        timerDisplay.classList.add("green");
+      } else if (totalSeconds > 10 * 60) {
+        document.body.classList.add("yellow");
+        timerDisplay.classList.add("yellow");
+      } else {
+        document.body.classList.add("red");
+        timerDisplay.classList.add("red");
+        eyes.forEach(e => e.classList.add("danger"));
+      }
+    }
+
+    function startTimer() {
+      startBtn.disabled = true;
+      timerInterval = setInterval(() => {
+        totalSeconds--;
+        timerDisplay.textContent = formatTime(totalSeconds);
+        updateTheme();
+
+        if (totalSeconds === 30 * 60) speak("30 minutes left");
+        if (totalSeconds === 20 * 60) speak("20 minutes left");
+        if (totalSeconds === 10 * 60) speak("10 minutes left");
+        if (totalSeconds === 5 * 60) speak("5 minutes left");
+        if (totalSeconds === 2 * 60) speak("2 minutes left");
+
+        if (totalSeconds <= 0) {
+          clearInterval(timerInterval);
+          timerDisplay.textContent = "00:00:00";
+          speak("Time is up");
+          alarmSound.play();
+        }
+      }, 1000);
+    }
+    startBtn.addEventListener("click", startTimer);
+
+    // Random eye movement
+    function randomEyeMovement() {
+      eyes.forEach(eye => {
+        const pupil = eye.querySelector(".pupil");
+        const randX = Math.floor(Math.random() * 20) - 10;
+        const randY = Math.floor(Math.random() * 20) - 10;
+        pupil.style.transform = `translate(${randX}px, ${randY}px)`;
+      });
+    }
+    setInterval(randomEyeMovement, 2000);
+
+    // Eye follow effect
+    document.addEventListener("mousemove", (e) => {
+      eyes.forEach(eye => {
+        const pupil = eye.querySelector(".pupil");
+        const rect = eye.getBoundingClientRect();
+        const x = e.clientX - (rect.left + rect.width / 2);
+        const y = e.clientY - (rect.top + rect.height / 2);
+        const angle = Math.atan2(y, x);
+        const move = 10;
+        pupil.style.transform = `translate(${Math.cos(angle) * move}px, ${Math.sin(angle) * move}px)`;
+      });
+    });
+  </script>
+</body>
+
+</html>
